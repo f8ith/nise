@@ -1,4 +1,5 @@
 use crate::nes::bus::NiseBus;
+#[cfg(feature = "nestest")]
 use log::debug;
 use log::warn;
 
@@ -46,6 +47,7 @@ struct Operand {
 
 #[cfg(feature = "nestest")]
 fn setup_nestest_logger() -> Result<(), fern::InitError> {
+    std::fs::write("output.log", "")?;
     fern::Dispatch::new()
         //        .format(|out, message, record| {
         //            out.finish(format_args!(
@@ -107,13 +109,79 @@ impl Nise6502 {
             ),
             _ => "     ".to_string(),
         };
+
+        let disassembly = match fetch {
+            "abs" => match name {
+                "jmp" | "jsr" => {
+                    format!("${:04X}", operand.address)
+                }
+                _ => format!("${:04X} = {:02X}", operand.address, operand.value),
+            },
+            "abx" | "abx_w" | "aby" | "aby_w" => format!(
+                "${:02X}{:02X},{} @ {:04X} = {:02X}",
+                self.read(old_state.pc + 1),
+                self.read(old_state.pc),
+                match fetch {
+                    "abx" | "abx_w" => "X",
+                    _ => "Y",
+                },
+                operand.address,
+                operand.value
+            ),
+            "ind" => format!("#${:02X}", operand.value),
+            "imm" => {
+                format!("#${:02X}", operand.value)
+            }
+            "zpa" => {
+                format!("${:02X} = {:02X}", self.read(old_state.pc), operand.value)
+            }
+            "zpx" | "zpy" => {
+                format!(
+                    "${:02X},{} @ {:02X} = {:02X}",
+                    self.read(old_state.pc),
+                    match fetch {
+                        "zpx" => "X",
+                        _ => "Y",
+                    },
+                    operand.address,
+                    operand.value
+                )
+            }
+            "idx" => {
+                format!(
+                    "(${:02X},X) @ {:02X} = {:04X} = {:02X}",
+                    self.read(old_state.pc),
+                    self.read(old_state.pc).wrapping_add(old_state.x),
+                    operand.address,
+                    operand.value
+                )
+            }
+            "idy" | "idy_w" => {
+                format!(
+                    "(${:02X}),Y = {:04X} @ {:04X} = {:02X}",
+                    self.read(old_state.pc),
+                    operand.address.wrapping_sub(old_state.y as u16),
+                    operand.address,
+                    operand.value
+                )
+            }
+            "rel" => {
+                format!("${:04X}", self.pc + operand.value as u16)
+            }
+            "imp" => match name {
+                "rol_a" | "lsr_a" | "asl_a" | "ror_a" => "A".to_string(),
+                _ => "".to_string(),
+            },
+            _ => "".to_string(),
+        };
         debug!(
-            "{:04X}  {:02X} {}  {} {:02X}                            A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
+            "{:04X}  {:02X} {}  {} {}{}A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
             old_state.pc - 1,
             self.read(old_state.pc - 1),
             operand_bytecode,
-            name.to_uppercase(),
-            operand.value,
+            name.to_uppercase().chars().take(3).collect::<String>(),
+            disassembly,
+            " ".repeat(27 - disassembly.len()),
             old_state.a,
             old_state.x,
             old_state.y,
@@ -545,7 +613,6 @@ impl Nise6502 {
 
     fn lda(&mut self, operand: Operand) {
         self.a = operand.value;
-
         self.set_nz(self.a)
     }
 
@@ -606,7 +673,7 @@ impl Nise6502 {
 
     fn plp(&mut self, _: Operand) {
         self.cycle_count += 4;
-        self.p = self.pop() | 0x30 & 0xEF;
+        self.p = (self.pop() | 0x30) & 0xEF;
     }
 
     fn rol(&mut self, operand: Operand) {
