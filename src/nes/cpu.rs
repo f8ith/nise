@@ -1,3 +1,4 @@
+use crate::common::to_u16;
 use crate::nes::bus::NiseBus;
 #[cfg(feature = "nestest")]
 use log::debug;
@@ -366,16 +367,14 @@ impl Nise6502 {
         }
     }
 
-    fn read(&self, address: u16) -> u8 {
+    fn read(&mut self, address: u16) -> u8 {
         self.bus.read(address)
     }
 
-    fn read16(&self, address: u16) -> u16 {
-        self.to_u16(self.read(address), self.read(address + 1))
-    }
-
-    fn to_u16(&self, l: u8, h: u8) -> u16 {
-        (l as u16) | (h as u16) << 8
+    fn read16(&mut self, address: u16) -> u16 {
+        let low_byte = self.read(address);
+        let high_byte = self.read(address + 1);
+        to_u16(low_byte, high_byte)
     }
 
     fn set_nz(&mut self, value: u8) {
@@ -721,14 +720,14 @@ impl Nise6502 {
         self.p = self.pop() | 0x30 & 0xEF;
         let pcl = self.pop();
         let pch = self.pop();
-        self.pc = self.to_u16(pcl, pch)
+        self.pc = to_u16(pcl, pch)
     }
 
     fn rts(&mut self, _: Operand) {
         self.cycle_count += 6;
         let pcl = self.pop();
         let pch = self.pop();
-        self.pc = self.to_u16(pcl, pch) + 1
+        self.pc = to_u16(pcl, pch) + 1
     }
 
     fn sbc(&mut self, operand: Operand) {
@@ -823,7 +822,8 @@ impl Nise6502 {
 
     fn absolute_indexed(&mut self, index: u8) -> (Operand, bool) {
         let (low_byte, crossed) = self.read(self.pc).overflowing_add(index);
-        let mut effective_address = self.to_u16(low_byte, self.read(self.pc + 1));
+        let high_byte = self.read(self.pc.wrapping_add(1));
+        let mut effective_address = to_u16(low_byte, high_byte);
         if crossed {
             effective_address = effective_address.wrapping_add(0x100);
             self.cycle_count += 5
@@ -898,14 +898,14 @@ impl Nise6502 {
         self.cycle_count += 6;
         let pointer_address = self.read16(self.pc);
         let low_byte = self.read(pointer_address);
-        let high_byte = self.read(self.to_u16(
+        let high_byte = self.read(to_u16(
             ((pointer_address & 0xFF) as u8).wrapping_add(1),
             (pointer_address >> 8) as u8,
         ));
         self.pc += 2;
         Operand {
             value: 0,
-            address: self.to_u16(low_byte, high_byte),
+            address: to_u16(low_byte, high_byte),
         }
     }
 
@@ -930,7 +930,8 @@ impl Nise6502 {
         let pointer_address = self.read(self.pc) as u16;
         self.pc += 1;
         let (low_byte, crossed) = (self.read(pointer_address)).overflowing_add(self.y);
-        let mut effective_address = self.to_u16(low_byte, self.read((pointer_address + 1) & 0xFF));
+        let high_byte = self.read(pointer_address.wrapping_add(1)) & 0xFF;
+        let mut effective_address = to_u16(low_byte, high_byte);
         if crossed {
             effective_address = effective_address.wrapping_add(0x100);
             self.cycle_count += 6

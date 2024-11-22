@@ -3062,23 +3062,26 @@ D951  85 FF     STA $FF = 00                   A:46 X:65 Y:34 P:65 SP:FA
 D953  A9 01     LDA #$01                       A:46 X:65 Y:34 P:65 SP:FA
 D955  85 00     STA $00 = 00                   A:01 X:65 Y:34 P:65 SP:FA
 D957  A0 FF     LDY #$FF                       A:01 X:65 Y:34 P:65 SP:FA
-D959  B1 FF     LDA ($FF),Y = 0146 @ 0245 = 12 A:01 X:65 Y:FF P:E5 SP:FA
-D95B  C9 12     CMP #$12                       A:12 X:65 Y:FF P:65 SP:FA
-D95D  F0 04     BEQ $D963                      A:12 X:65 Y:FF P:67 SP:FA
-D963  68        PLA                            A:12 X:65 Y:FF P:67 SP:FA
-D964  85 00     STA $00 = 01                   A:00 X:65 Y:FF P:67 SP:FB
-D966  A2 ED     LDX #$ED                       A:00 X:65 Y:FF P:67 SP:FB
-D968  A9 00     LDA #$00                       A:00 X:ED Y:FF P:E5 SP:FB
-D96A  85 33     STA $33 = A3                   A:00 X:ED Y:FF P:67 SP:FB
-D96C  A9 04     LDA #$04                       A:00 X:ED Y:FF P:67 SP:FB
-D96E  85 34     STA $34 = 00                   A:04 X:ED Y:FF P:65 SP:FB
-D970  A0 00     LDY #$00                       A:04 X:ED Y:FF P:65 SP:FB
-D972  18        CLC                            A:04 X:ED Y:00 P:67 SP:FB
+D959  B1 FF     LDA ($FF),Y = 0046 @ 0145 = 00 A:01 X:65 Y:FF P:E5 SP:FA
+D95B  C9 12     CMP #$12                       A:00 X:65 Y:FF P:67 SP:FA
+D95D  F0 04     BEQ $D963                      A:00 X:65 Y:FF P:E4 SP:FA
+D95F  68        PLA                            A:00 X:65 Y:FF P:E4 SP:FA
+D960  A9 EC     LDA #$EC                       A:00 X:65 Y:FF P:66 SP:FB
+D962  48        PHA                            A:EC X:65 Y:FF P:E4 SP:FB
+D963  68        PLA                            A:EC X:65 Y:FF P:E4 SP:FA
+D964  85 00     STA $00 = 01                   A:EC X:65 Y:FF P:E4 SP:FB
+D966  A2 ED     LDX #$ED                       A:EC X:65 Y:FF P:E4 SP:FB
+D968  A9 00     LDA #$00                       A:EC X:ED Y:FF P:E4 SP:FB
+D96A  85 33     STA $33 = A3                   A:00 X:ED Y:FF P:66 SP:FB
+D96C  A9 04     LDA #$04                       A:00 X:ED Y:FF P:66 SP:FB
+D96E  85 34     STA $34 = 00                   A:04 X:ED Y:FF P:64 SP:FB
+D970  A0 00     LDY #$00                       A:04 X:ED Y:FF P:64 SP:FB
+D972  18        CLC                            A:04 X:ED Y:00 P:66 SP:FB
 D973  A9 FF     LDA #$FF                       A:04 X:ED Y:00 P:66 SP:FB
 D975  85 01     STA $01 = FF                   A:FF X:ED Y:00 P:E4 SP:FB
 D977  24 01     BIT $01 = FF                   A:FF X:ED Y:00 P:E4 SP:FB
 D979  A9 AA     LDA #$AA                       A:FF X:ED Y:00 P:E4 SP:FB
-D97B  8D 00 04  STA $0400 = 00                 A:AA X:ED Y:00 P:E4 SP:FB
+D97B  8D 00 04  STA $0400 = EC                 A:AA X:ED Y:00 P:E4 SP:FB
 D97E  A9 55     LDA #$55                       A:AA X:ED Y:00 P:E4 SP:FB
 D980  11 33     ORA ($33),Y = 0400 @ 0400 = AA A:55 X:ED Y:00 P:64 SP:FB
 D982  B0 08     BCS $D98C                      A:FF X:ED Y:00 P:E4 SP:FB
@@ -9142,6 +9145,4 @@ C5F4  40        RTI                            A:00 X:00 Y:4F P:76 SP:FB
 09FF  00        BRK                            A:00 X:00 Y:4F P:76 SP:FE
 C5F4  40        RTI                            A:00 X:00 Y:4F P:76 SP:FB
 0AFF  00        BRK                            A:00 X:00 Y:4F P:76 SP:FE
-C5F4  40        RTI                            A:00 X:00 Y:4F P:76 SP:FB
-0BFF  00        BRK                            A:00 X:00 Y:4F P:76 SP:FE
 C5F4  40        RTI                            A:00 X:00 Y:4F P:76 SP:FB

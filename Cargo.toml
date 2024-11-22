@@ -12,6 +12,7 @@ glow = "0.11.2"
 humantime = "2.1.0"
 log = "0.4"
 objc = "0.2"
+num = "0.4.3"
 #sdl2 = { version = "0.35.2", features = ["bundled", "static-link"] }
 
 #[[bin]]

@@ -28,7 +28,7 @@ impl NiseBus {
     }
 
     // TODO: IMPLEMENT PPU REGISTER ACCESS
-    pub fn read(&self, address: u16) -> u8 {
+    pub fn read(&mut self, address: u16) -> u8 {
         match address {
             0x0000..=0x1fff => {
                 let mirrored_addr = address & 0b0011_11111111;
@@ -38,7 +38,10 @@ impl NiseBus {
                 let mirrored_addr = address & 0x0007;
                 match mirrored_addr {
                     0 | 1 | 3 | 5 | 6 => panic!("Attempt to read to write-only PPU register!"),
-                    2 => self.ppu.ppustatus,
+                    2 => {
+                        self.ppu.w = 0;
+                        self.ppu.ppustatus
+                    }
                     4 => self.ppu.oamdata,
                     7 => self.ppu.ppudata,
                     _ => panic!("Invalid mirrored address?"),
@@ -62,8 +65,14 @@ impl NiseBus {
                     1 => self.ppu.ppumask = data,
                     3 => self.ppu.oamaddr = data,
                     4 => self.ppu.oamdata = data,
-                    5 => self.ppu.ppuscroll = data,
-                    6 => self.ppu.ppuaddr = data,
+                    5 => {
+                        self.ppu.w ^= 1;
+                        self.ppu.ppuscroll = data
+                    }
+                    6 => {
+                        self.ppu.w ^= 1;
+                        self.ppu.ppuaddr = data
+                    }
                     7 => self.ppu.ppudata = data,
                     _ => panic!("Invalid mirrored address?"),
                 }
